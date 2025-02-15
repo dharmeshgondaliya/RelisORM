@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type SelectQueryBuilder struct {
+type selectQueryBuilder struct {
 	Schemas           map[string]Schema
 	responseStructure Map
 	responseMapping   map[any]any
@@ -16,7 +16,7 @@ type SelectQueryBuilder struct {
 	orderBy           string
 }
 
-func (s *SelectQueryBuilder) BuildSelectQuery(table string, fields []Fields, where Where, limit int, offset int, include []Map, group []string, having Where, order Order, isCountQuery bool) (string, error) {
+func (s *selectQueryBuilder) buildSelectQuery(table string, fields []Fields, where Where, limit int, offset int, include []Map, group []string, having Where, order Order, isCountQuery bool) (string, error) {
 	var fieldList []Fields = s.parseTableFields(table, fields)
 	var mainTablePrimaryKey string = s.getPrimaryKeyOfTable(table)
 	if mainTablePrimaryKey == "" {
@@ -335,7 +335,7 @@ func (s *SelectQueryBuilder) BuildSelectQuery(table string, fields []Fields, whe
 	// return fmt.Sprintf("SELECT %s FROM %s  %s %s %s", s.columns, subQuery, s.joinString, s.groupBy, s.orderBy), nil
 }
 
-func (s *SelectQueryBuilder) parseTableFields(table string, fields []Fields) []Fields {
+func (s *selectQueryBuilder) parseTableFields(table string, fields []Fields) []Fields {
 	var tableFields []Fields
 	if len(fields) == 0 {
 		for k := range s.Schemas[table].Fields {
@@ -346,7 +346,7 @@ func (s *SelectQueryBuilder) parseTableFields(table string, fields []Fields) []F
 	return fields
 }
 
-func (s *SelectQueryBuilder) getTableFields(table string, primaryKey string, fields []Fields, canAddPrimaryKey bool) string {
+func (s *selectQueryBuilder) getTableFields(table string, primaryKey string, fields []Fields, canAddPrimaryKey bool) string {
 	var primaryKeyIncluded = false
 	var columns []string
 	for _, field := range fields {
@@ -365,7 +365,7 @@ func (s *SelectQueryBuilder) getTableFields(table string, primaryKey string, fie
 	return strings.Join(columns, ",")
 }
 
-func (s *SelectQueryBuilder) getPrimaryKeyOfTable(table string) string {
+func (s *selectQueryBuilder) getPrimaryKeyOfTable(table string) string {
 	for k, v := range s.Schemas[table].Fields {
 		if fv, ok := v.(Map); ok && fv["primaryKey"] == true {
 			return k
@@ -374,7 +374,7 @@ func (s *SelectQueryBuilder) getPrimaryKeyOfTable(table string) string {
 	return ""
 }
 
-func (s *SelectQueryBuilder) addIncludeTable(tableNames string, includeObj Map, responseStructureData Map, isRecursive bool) error {
+func (s *selectQueryBuilder) addIncludeTable(tableNames string, includeObj Map, responseStructureData Map, isRecursive bool) error {
 	tableSlice := strings.Split(tableNames, "->")
 	tableNameTrimmed := tableSlice[len(tableSlice)-1]
 	tableName, ok := includeObj["table"].(string)
@@ -557,7 +557,7 @@ func (s *SelectQueryBuilder) addIncludeTable(tableNames string, includeObj Map, 
 	return nil
 }
 
-func (s *SelectQueryBuilder) ParseData(dataList []Map) ([]Map, error) {
+func (s *selectQueryBuilder) parseData(dataList []Map) ([]Map, error) {
 	var modifiedData []Map = []Map{}
 	var length int = len(dataList)
 
@@ -566,12 +566,12 @@ func (s *SelectQueryBuilder) ParseData(dataList []Map) ([]Map, error) {
 
 		var primaryKeyContains bool = false
 		var groupMappingContains bool = false
-		if ContainsKeyInMap(data, s.responseStructure["mapping_key"]) {
+		if containsKeyInMap(data, s.responseStructure["mapping_key"]) {
 			_, contains := s.responseMapping[data[s.responseStructure["mapping_key"].(string)]]
 			primaryKeyContains = !contains
 		}
-		if ContainsKey(s.responseStructure, "group_mapping_key") {
-			if !ContainsKeyInMap(data, s.responseStructure["group_mapping_key"]) {
+		if containsKey(s.responseStructure, "group_mapping_key") {
+			if !containsKeyInMap(data, s.responseStructure["group_mapping_key"]) {
 				groupMappingContains = true
 			}
 		}
@@ -605,7 +605,7 @@ func (s *SelectQueryBuilder) ParseData(dataList []Map) ([]Map, error) {
 						index, isInt := d["index"].(int)
 						if isInt {
 							var modifiedMapData Map = modifiedData[index]
-							s.ParseIncludeData(data, modifiedMapData, includeStructure, d)
+							s.parseIncludeData(data, modifiedMapData, includeStructure, d)
 						}
 
 					}
@@ -618,7 +618,7 @@ func (s *SelectQueryBuilder) ParseData(dataList []Map) ([]Map, error) {
 	return modifiedData, nil
 }
 
-func (s *SelectQueryBuilder) ParseIncludeData(data Map, modifiedData Map, responseStructureData Map, responseMappingData map[any]any) error {
+func (s *selectQueryBuilder) parseIncludeData(data Map, modifiedData Map, responseStructureData Map, responseMappingData map[any]any) error {
 	if modifiedData[responseStructureData["table"].(string)] == nil {
 		modifiedData[responseStructureData["table"].(string)] = []Map{}
 	}
@@ -640,7 +640,7 @@ func (s *SelectQueryBuilder) ParseIncludeData(data Map, modifiedData Map, respon
 		if includeStructures, includeOK := responseStructureData["include"].([]Map); includeOK {
 			for _, includeStructure := range includeStructures {
 				var modifiedMapData Map = modifiedData[responseStructureData["table"].(string)].([]Map)[responseMappingData[responseStructureData["table"].(string)].(map[any]any)[data[responseStructureData["mapping_key"].(string)]].(map[any]any)["index"].(int)]
-				return s.ParseIncludeData(data, modifiedMapData, includeStructure, responseMappingData[responseStructureData["table"].(string)].(map[any]any)[data[responseStructureData["mapping_key"].(string)]].(map[any]any))
+				return s.parseIncludeData(data, modifiedMapData, includeStructure, responseMappingData[responseStructureData["table"].(string)].(map[any]any)[data[responseStructureData["mapping_key"].(string)]].(map[any]any))
 			}
 		}
 	}

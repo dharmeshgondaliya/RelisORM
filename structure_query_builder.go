@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func CreateTableQueries(schemas map[string]Schema) ([]string, error) {
+func createTableQueries(schemas map[string]Schema) ([]string, error) {
 	var tables []string
 	for table, _schema := range schemas {
 		var fields []string
@@ -76,7 +76,7 @@ func CreateTableQueries(schemas map[string]Schema) ([]string, error) {
 	return tables, nil
 }
 
-func DeleteAllTablesQuery() string {
+func deleteAllTablesQuery() string {
 	return `
 		DO $$
 		DECLARE

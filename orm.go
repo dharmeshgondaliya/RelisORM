@@ -22,13 +22,13 @@ func NewORM(db DatabaseClient, schemas []Schema) (*ORM, error) {
 
 func (o *ORM) Sync(sync bool) error {
 
-	tables, err := CreateTableQueries(o.schemas)
+	tables, err := createTableQueries(o.schemas)
 	if err != nil {
 		return err
 	}
 
 	if sync {
-		var deleteTables string = DeleteAllTablesQuery()
+		var deleteTables string = deleteAllTablesQuery()
 		fmt.Println(deleteTables)
 		for _, table := range tables {
 			fmt.Print(table)
@@ -77,8 +77,8 @@ func (o *ORM) Insert(table string, data Map) (any, error) {
 		returning = r
 	}
 
-	var queryBuilder InsertQueryBuilder = InsertQueryBuilder{Schema: o.schemas[table]}
-	var query string = queryBuilder.BuildInsertQuery(insertData, returning)
+	var queryBuilder insertQueryBuilder = insertQueryBuilder{Schema: o.schemas[table]}
+	var query string = queryBuilder.buildInsertQuery(insertData, returning)
 	fmt.Println(query)
 	return nil, nil
 }
@@ -112,8 +112,8 @@ func (o *ORM) MultiInsert(table string, data Map) (any, error) {
 		returning = r
 	}
 
-	var queryBuilder InsertQueryBuilder = InsertQueryBuilder{Schema: o.schemas[table]}
-	var query string = queryBuilder.BuildMultiInsertQuery(insertData, returning)
+	var queryBuilder insertQueryBuilder = insertQueryBuilder{Schema: o.schemas[table]}
+	var query string = queryBuilder.buildMultiInsertQuery(insertData, returning)
 	fmt.Println(query)
 	return nil, nil
 }
@@ -159,8 +159,8 @@ func (o *ORM) Update(table string, data Map) (any, error) {
 		returning = r
 	}
 
-	var queryBuilder UpdateQueryBuilder = UpdateQueryBuilder{Schema: o.schemas[table]}
-	query, err := queryBuilder.BuildUpdateQuery(udpateData, whereData, returning)
+	var queryBuilder updateQueryBuilder = updateQueryBuilder{Schema: o.schemas[table]}
+	query, err := queryBuilder.buildUpdateQuery(udpateData, whereData, returning)
 	if err != nil {
 		return nil, err
 	}
@@ -195,8 +195,8 @@ func (o *ORM) Delete(table string, data Map) (any, error) {
 		returning = r
 	}
 
-	var queryBuilder DeleteQueryBuilder = DeleteQueryBuilder{Schema: o.schemas[table]}
-	query, err := queryBuilder.BuildDeleteQuery(whereData, returning)
+	var queryBuilder deleteQueryBuilder = deleteQueryBuilder{Schema: o.schemas[table]}
+	query, err := queryBuilder.buildDeleteQuery(whereData, returning)
 	if err != nil {
 		return nil, err
 	}
@@ -278,8 +278,8 @@ func (o *ORM) FindAll(table string, data ...Map) (any, error) {
 		}
 	}
 
-	var queryBuilder SelectQueryBuilder = SelectQueryBuilder{Schemas: o.schemas}
-	query, err := queryBuilder.BuildSelectQuery(table, fields, where, limit, offset, include, group, having, order, false)
+	var queryBuilder selectQueryBuilder = selectQueryBuilder{Schemas: o.schemas}
+	query, err := queryBuilder.buildSelectQuery(table, fields, where, limit, offset, include, group, having, order, false)
 	if err != nil {
 		return nil, err
 	}
@@ -357,8 +357,8 @@ func (o *ORM) FindOne(table string, data ...Map) (any, error) {
 		}
 	}
 
-	var queryBuilder SelectQueryBuilder = SelectQueryBuilder{Schemas: o.schemas}
-	query, err := queryBuilder.BuildSelectQuery(table, fields, where, limit, -1, include, group, having, order, false)
+	var queryBuilder selectQueryBuilder = selectQueryBuilder{Schemas: o.schemas}
+	query, err := queryBuilder.buildSelectQuery(table, fields, where, limit, -1, include, group, having, order, false)
 	if err != nil {
 		return nil, err
 	}
@@ -416,8 +416,8 @@ func (o *ORM) Count(table string, data ...Map) (any, error) {
 		}
 	}
 
-	var queryBuilder SelectQueryBuilder = SelectQueryBuilder{Schemas: o.schemas}
-	query, err := queryBuilder.BuildSelectQuery(table, fields, where, -1, -1, include, group, having, nil, true)
+	var queryBuilder selectQueryBuilder = selectQueryBuilder{Schemas: o.schemas}
+	query, err := queryBuilder.buildSelectQuery(table, fields, where, -1, -1, include, group, having, nil, true)
 	if err != nil {
 		return nil, err
 	}
@@ -500,10 +500,10 @@ func (o *ORM) FindAndCountAll(table string, data ...Map) (any, error) {
 		}
 	}
 
-	var findQueryBuilder SelectQueryBuilder = SelectQueryBuilder{Schemas: o.schemas}
-	findQuery, findQueryError := findQueryBuilder.BuildSelectQuery(table, fields, where, limit, offset, include, group, having, order, false)
-	var countQueryBuilder SelectQueryBuilder = SelectQueryBuilder{Schemas: o.schemas}
-	countQuery, countQueryError := countQueryBuilder.BuildSelectQuery(table, fields, where, -1, -1, include, group, having, order, true)
+	var findQueryBuilder selectQueryBuilder = selectQueryBuilder{Schemas: o.schemas}
+	findQuery, findQueryError := findQueryBuilder.buildSelectQuery(table, fields, where, limit, offset, include, group, having, order, false)
+	var countQueryBuilder selectQueryBuilder = selectQueryBuilder{Schemas: o.schemas}
+	countQuery, countQueryError := countQueryBuilder.buildSelectQuery(table, fields, where, -1, -1, include, group, having, order, true)
 	if findQueryError != nil {
 		return nil, findQueryError
 	}

@@ -1,11 +1,11 @@
 package RelisORM
 
-func ContainsKey(m Map, key string) bool {
+func containsKey(m Map, key string) bool {
 	_, exists := m[key]
 	return exists
 }
 
-func ContainsKeyInMap(m Map, key any) bool {
+func containsKeyInMap(m Map, key any) bool {
 	if key == nil {
 		return false
 	}

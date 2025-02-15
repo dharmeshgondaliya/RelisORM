@@ -5,15 +5,15 @@ import (
 	"strings"
 )
 
-type InsertQueryBuilder struct {
+type insertQueryBuilder struct {
 	Schema Schema
 }
 
-func (i *InsertQueryBuilder) BuildInsertQuery(data Map, returning bool) string {
+func (i *insertQueryBuilder) buildInsertQuery(data Map, returning bool) string {
 	var primaryKey *string = i.getPrimaryKeyOfTable()
 	var fields []string
 
-	var primaryKeyExist bool = primaryKey != nil && ContainsKey(data, *primaryKey)
+	var primaryKeyExist bool = primaryKey != nil && containsKey(data, *primaryKey)
 
 	for k := range data {
 		if primaryKeyExist && k != *primaryKey {
@@ -38,7 +38,7 @@ func (i *InsertQueryBuilder) BuildInsertQuery(data Map, returning bool) string {
 	return query
 }
 
-func (i *InsertQueryBuilder) BuildMultiInsertQuery(datas []Map, returning bool) string {
+func (i *insertQueryBuilder) buildMultiInsertQuery(datas []Map, returning bool) string {
 	var primaryKey *string = i.getPrimaryKeyOfTable()
 
 	var fields []string
@@ -74,7 +74,7 @@ func (i *InsertQueryBuilder) BuildMultiInsertQuery(datas []Map, returning bool) 
 	return query
 }
 
-func (i *InsertQueryBuilder) getPrimaryKeyOfTable() *string {
+func (i *insertQueryBuilder) getPrimaryKeyOfTable() *string {
 	for column, value := range i.Schema.Fields {
 		if field, ok := value.(Map); ok {
 			if field["primaryKey"] == true && (field["autoIncrement"] == true || field["type"] == "SERIAL" || field["type"] == "BIGSERIAL" || field["type"] == "UUID") {

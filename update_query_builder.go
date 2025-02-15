@@ -5,11 +5,11 @@ import (
 	"strings"
 )
 
-type UpdateQueryBuilder struct {
+type updateQueryBuilder struct {
 	Schema Schema
 }
 
-func (u *UpdateQueryBuilder) BuildUpdateQuery(data Map, where Where, returning bool) (string, error) {
+func (u *updateQueryBuilder) buildUpdateQuery(data Map, where Where, returning bool) (string, error) {
 	var fields []string
 	for k, v := range data {
 		fields = append(fields, fmt.Sprintf("%s='%v'", k, v))
