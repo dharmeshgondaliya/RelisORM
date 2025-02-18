@@ -274,6 +274,8 @@ func (s *selectQueryBuilder) buildSelectQuery(table string, fields []Fields, whe
 		s.groupBy += " HAVING " + s.havingCondition
 	}
 
+	s.responseMapping = map[any]any{}
+
 	if isCountQuery {
 		var selectedColumn string = "*"
 		if len(include) != 0 {
@@ -282,7 +284,7 @@ func (s *selectQueryBuilder) buildSelectQuery(table string, fields []Fields, whe
 		return fmt.Sprintf("SELECT Count(%s) as Count FROM %s AS \"%s\" %s %s %s", selectedColumn, table, table, s.joinString, whereCondition, s.groupBy), nil
 	}
 
-	var query string = ""
+	var query string = "SELECT " + s.columns + " FROM"
 	var subQuery string = table + " AS \"" + table + "\""
 	if limitOffset != "" && len(include) != 0 {
 		if whereCondition != "" {

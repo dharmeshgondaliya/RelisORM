@@ -80,7 +80,7 @@ func (o *ORM) Insert(table string, data Map) (any, error) {
 	var queryBuilder insertQueryBuilder = insertQueryBuilder{Schema: o.schemas[table]}
 	var query string = queryBuilder.buildInsertQuery(insertData, returning)
 	fmt.Println(query)
-	return nil, nil
+	return o.db.Query(query)
 }
 
 func (o *ORM) MultiInsert(table string, data Map) (any, error) {
@@ -115,7 +115,7 @@ func (o *ORM) MultiInsert(table string, data Map) (any, error) {
 	var queryBuilder insertQueryBuilder = insertQueryBuilder{Schema: o.schemas[table]}
 	var query string = queryBuilder.buildMultiInsertQuery(insertData, returning)
 	fmt.Println(query)
-	return nil, nil
+	return o.db.Query(query)
 }
 
 func (o *ORM) Update(table string, data Map) (any, error) {
@@ -165,7 +165,7 @@ func (o *ORM) Update(table string, data Map) (any, error) {
 		return nil, err
 	}
 	fmt.Println(query)
-	return nil, nil
+	return o.db.Query(query)
 }
 
 func (o *ORM) Delete(table string, data Map) (any, error) {
@@ -201,7 +201,7 @@ func (o *ORM) Delete(table string, data Map) (any, error) {
 		return nil, err
 	}
 	fmt.Println(query)
-	return nil, nil
+	return o.db.Query(query)
 }
 
 func (o *ORM) FindAll(table string, data ...Map) (any, error) {
@@ -288,7 +288,7 @@ func (o *ORM) FindAll(table string, data ...Map) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return datas, nil
+	return queryBuilder.parseData(*datas)
 }
 
 func (o *ORM) FindOne(table string, data ...Map) (any, error) {
@@ -363,12 +363,24 @@ func (o *ORM) FindOne(table string, data ...Map) (any, error) {
 		return nil, err
 	}
 	fmt.Println(query)
-	return nil, nil
+	datas, err := o.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	res, err := queryBuilder.parseData(*datas)
+
+	if err != nil {
+		return nil, nil
+	}
+	if len(res) == 0 {
+		return nil, nil
+	}
+	return res[0], nil
 }
 
-func (o *ORM) Count(table string, data ...Map) (any, error) {
+func (o *ORM) Count(table string, data ...Map) (int, error) {
 	if err := o.isValidTableName(table); err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	var fields []Fields
@@ -382,35 +394,35 @@ func (o *ORM) Count(table string, data ...Map) (any, error) {
 		if data[0]["fields"] != nil {
 			data, ok := data[0]["fields"].([]Fields)
 			if !ok {
-				return nil, fmt.Errorf("fields type are not match")
+				return 0, fmt.Errorf("fields type are not match")
 			}
 			fields = data
 		}
 		if data[0]["where"] != nil {
 			data, ok := data[0]["where"].(Where)
 			if !ok {
-				return nil, fmt.Errorf("where type are not match")
+				return 0, fmt.Errorf("where type are not match")
 			}
 			where = data
 		}
 		if data[0]["include"] != nil {
 			data, ok := data[0]["include"].([]Map)
 			if !ok {
-				return nil, fmt.Errorf("include type are not match")
+				return 0, fmt.Errorf("include type are not match")
 			}
 			include = data
 		}
 		if data[0]["group"] != nil {
 			data, ok := data[0]["group"].([]string)
 			if !ok {
-				return nil, fmt.Errorf("group type are not match")
+				return 0, fmt.Errorf("group type are not match")
 			}
 			group = data
 		}
 		if data[0]["having"] != nil {
 			data, ok := data[0]["having"].(Where)
 			if !ok {
-				return nil, fmt.Errorf("having type are not match")
+				return 0, fmt.Errorf("having type are not match")
 			}
 			having = data
 		}
@@ -419,10 +431,18 @@ func (o *ORM) Count(table string, data ...Map) (any, error) {
 	var queryBuilder selectQueryBuilder = selectQueryBuilder{Schemas: o.schemas}
 	query, err := queryBuilder.buildSelectQuery(table, fields, where, -1, -1, include, group, having, nil, true)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	fmt.Println(query)
-	return nil, nil
+	datas, err := o.db.Query(query)
+	if err != nil {
+		return 0, err
+	}
+	if len(*datas) > 0 {
+		count := (*datas)[0]["count"]
+		return count.(int), nil
+	}
+	return 0, nil
 }
 
 func (o *ORM) FindAndCountAll(table string, data ...Map) (any, error) {
@@ -512,5 +532,24 @@ func (o *ORM) FindAndCountAll(table string, data ...Map) (any, error) {
 	}
 	fmt.Println(findQuery)
 	fmt.Println(countQuery)
-	return nil, nil
+
+	findData, findErr := o.db.Query(findQuery)
+	countData, countErr := o.db.Query(countQuery)
+
+	if findErr != nil {
+		return nil, findErr
+	}
+	if countErr != nil {
+		return nil, countErr
+	}
+	res, findParseErr := findQueryBuilder.parseData(*findData)
+	if findParseErr != nil {
+		return nil, findParseErr
+	}
+	var count int
+	if len(*countData) > 0 {
+		count := (*countData)[0]["count"]
+		return count.(int), nil
+	}
+	return Map{"count": count, "rows": res}, nil
 }
