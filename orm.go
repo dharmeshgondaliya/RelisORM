@@ -370,7 +370,7 @@ func (o *ORM) FindOne(table string, data ...Map) (any, error) {
 	res, err := queryBuilder.parseData(*datas)
 
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	if len(res) == 0 {
 		return nil, nil

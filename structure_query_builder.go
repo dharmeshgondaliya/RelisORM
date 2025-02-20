@@ -24,6 +24,9 @@ func createTableQueries(schemas map[string]Schema) ([]string, error) {
 					if mapvalue["autoIncrement"] == true {
 						column += " AUTOINCREMENT"
 					}
+					if mapvalue["auto_increment"] == true {
+						column += " AUTO_INCREMENT"
+					}
 					if mapvalue["allowNull"] == false {
 						column += " NOT NULL"
 					}
