@@ -31,7 +31,10 @@ func (o *ORM) Sync(sync bool) error {
 		var deleteTables string = deleteAllTablesQuery()
 		fmt.Println(deleteTables)
 		for _, table := range tables {
-			fmt.Print(table)
+			fmt.Println(table)
+			if _, err := o.db.Query(table); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -204,7 +207,7 @@ func (o *ORM) Delete(table string, data Map) (any, error) {
 	return o.db.Query(query)
 }
 
-func (o *ORM) FindAll(table string, data ...Map) (any, error) {
+func (o *ORM) FindAll(table string, data ...Map) ([]Map, error) {
 	if err := o.isValidTableName(table); err != nil {
 		return nil, err
 	}
@@ -291,7 +294,7 @@ func (o *ORM) FindAll(table string, data ...Map) (any, error) {
 	return queryBuilder.parseData(*datas)
 }
 
-func (o *ORM) FindOne(table string, data ...Map) (any, error) {
+func (o *ORM) FindOne(table string, data ...Map) (*Map, error) {
 	if err := o.isValidTableName(table); err != nil {
 		return nil, err
 	}
@@ -375,10 +378,10 @@ func (o *ORM) FindOne(table string, data ...Map) (any, error) {
 	if len(res) == 0 {
 		return nil, nil
 	}
-	return res[0], nil
+	return &res[0], nil
 }
 
-func (o *ORM) Count(table string, data ...Map) (int, error) {
+func (o *ORM) Count(table string, data ...Map) (int64, error) {
 	if err := o.isValidTableName(table); err != nil {
 		return 0, err
 	}
@@ -440,7 +443,7 @@ func (o *ORM) Count(table string, data ...Map) (int, error) {
 	}
 	if len(*datas) > 0 {
 		count := (*datas)[0]["count"]
-		return count.(int), nil
+		return count.(int64), nil
 	}
 	return 0, nil
 }
@@ -546,10 +549,9 @@ func (o *ORM) FindAndCountAll(table string, data ...Map) (any, error) {
 	if findParseErr != nil {
 		return nil, findParseErr
 	}
-	var count int
+	var count int64
 	if len(*countData) > 0 {
-		count := (*countData)[0]["count"]
-		return count.(int), nil
+		count = (*countData)[0]["count"].(int64)
 	}
 	return Map{"count": count, "rows": res}, nil
 }

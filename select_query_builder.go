@@ -281,7 +281,10 @@ func (s *selectQueryBuilder) buildSelectQuery(table string, fields []Fields, whe
 		if len(include) != 0 {
 			selectedColumn = fmt.Sprintf("\"%s\".%s", table, mainTablePrimaryKey)
 		}
-		return fmt.Sprintf("SELECT Count(%s) as Count FROM %s AS \"%s\" %s %s %s", selectedColumn, table, table, s.joinString, whereCondition, s.groupBy), nil
+		if whereCondition != "" {
+			return fmt.Sprintf("SELECT Count(%s) as Count FROM %s AS \"%s\" %s WHERE %s %s", selectedColumn, table, table, s.joinString, whereCondition, s.groupBy), nil
+		}
+		return fmt.Sprintf("SELECT Count(%s) as Count FROM %s AS \"%s\" %s %s", selectedColumn, table, table, s.joinString, s.groupBy), nil
 	}
 
 	var query string = "SELECT " + s.columns + " FROM "
