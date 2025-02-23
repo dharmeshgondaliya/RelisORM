@@ -448,7 +448,7 @@ func (o *ORM) Count(table string, data ...Map) (int64, error) {
 	return 0, nil
 }
 
-func (o *ORM) FindAndCountAll(table string, data ...Map) (any, error) {
+func (o *ORM) FindAndCountAll(table string, data ...Map) (Map, error) {
 	if err := o.isValidTableName(table); err != nil {
 		return nil, err
 	}
