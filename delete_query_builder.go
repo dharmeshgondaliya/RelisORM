@@ -1,4 +1,4 @@
-package RelisORM
+package relisorm
 
 type deleteQueryBuilder struct {
 	Schema Schema

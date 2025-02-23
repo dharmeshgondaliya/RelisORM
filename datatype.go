@@ -1,4 +1,4 @@
-package RelisORM
+package relisorm
 
 import "fmt"
 

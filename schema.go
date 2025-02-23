@@ -1,4 +1,4 @@
-package RelisORM
+package relisorm
 
 type Map map[string]interface{}
 
@@ -21,4 +21,21 @@ type SQLFunction struct {
 
 type SQLLiteral struct {
 	Value string
+}
+
+func (m *Map) ContainsKey(key string) bool {
+	_, exists := (*m)[key]
+	return exists
+}
+
+func (m *Map) ContainsKeyInMap(key any) bool {
+	if key == nil {
+		return false
+	}
+	s, isString := key.(string)
+	if !isString {
+		return false
+	}
+	_, exists := (*m)[s]
+	return exists
 }

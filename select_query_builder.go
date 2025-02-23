@@ -1,4 +1,4 @@
-package RelisORM
+package relisorm
 
 import (
 	"fmt"
@@ -571,12 +571,14 @@ func (s *selectQueryBuilder) parseData(dataList []Map) ([]Map, error) {
 
 		var primaryKeyContains bool = false
 		var groupMappingContains bool = false
-		if containsKeyInMap(data, s.responseStructure["mapping_key"]) {
+
+		if data.ContainsKeyInMap(s.responseStructure["mapping_key"]) {
 			_, contains := s.responseMapping[data[s.responseStructure["mapping_key"].(string)]]
 			primaryKeyContains = !contains
 		}
-		if containsKey(s.responseStructure, "group_mapping_key") {
-			if !containsKeyInMap(data, s.responseStructure["group_mapping_key"]) {
+
+		if s.responseStructure.ContainsKey("group_mapping_key") {
+			if !data.ContainsKeyInMap(s.responseStructure["group_mapping_key"]) {
 				groupMappingContains = true
 			}
 		}
