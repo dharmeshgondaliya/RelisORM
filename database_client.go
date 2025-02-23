@@ -12,6 +12,14 @@ func OpenPostgresClient(connString string) (DatabaseClient, error) {
 	return &PostgresClient{DB: db}, nil
 }
 
+func OpenMySqlClient(connString string) (DatabaseClient, error) {
+	db, err := sql.Open("mysql", connString)
+	if err != nil {
+		return nil, err
+	}
+	return &MySqlClient{DB: db}, nil
+}
+
 type DatabaseClient interface {
 	Close() error
 	Ping() error
